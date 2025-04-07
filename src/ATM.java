@@ -1,4 +1,5 @@
 import java.math.BigDecimal;
+import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class ATM {
@@ -11,106 +12,109 @@ public class ATM {
         this.sc = new Scanner(System.in);
     }
 
-    public void login(int id, String pin) {
-        for (Account account : accounts) {
-            if (account.getId() == id) {
-                if (account.verifyPin(pin)) {
-                    currentAccount = account;
-                    System.out.println("Successfully logged in!");
-                    showMenu();
-                    return;
-                } else {
-                    return;
-                }
-            }
-        }
-        System.out.println("Account not found.");
-    }
-
-
     public Account getCurrentAccount() {
         return currentAccount;
     }
 
+    public void login(int id, String pin) {
+        try {
+            for (Account account : accounts) {
+                if (account.getId() == id) {
+                    if (account.verifyPin(pin)) {
+                        currentAccount = account;
+                        System.out.println("\n✔ Login successful!");
+                        showMenu();
+                        return;
+                    } else {
+                        System.out.println("\n✖ Incorrect PIN");
+                        return;
+                    }
+                }
+            }
+            System.out.println("\n✖ Account not found");
+        } catch (Exception e) {
+            System.out.println("\n⚠ Error: " + e.getMessage());
+        }
+    }
+
     public boolean checkRepeatApplication() {
         while (true) {
-            System.out.println("\n9. Return to the main menu.");
-            System.out.println("0. Exit to application.");
-            System.out.print("Choose an option: ");
-            int userChoice = sc.nextInt();
+            try {
+                System.out.println("\n9. Back to main menu");
+                System.out.println("0. Exit");
+                System.out.print("Select option: ");
+                int choice = sc.nextInt();
 
-            switch (userChoice) {
-                case 9:
-                    return true;
-                case 0:
-                    System.out.println("Exiting to application...");
+                if (choice == 9) return true;
+                if (choice == 0) {
+                    System.out.println("\nThank you for using our ATM!");
                     return false;
-                default:
-                    System.out.println("Invalid option. Try again.");
+                }
+                System.out.println("\n✖ Invalid choice");
+            } catch (InputMismatchException e) {
+                System.out.println("\n✖ Please enter a number (9 or 0)");
+                sc.next();
             }
         }
     }
 
     public void showMenu() {
         while (true) {
-            System.out.println("\nATM Menu:");
-            System.out.println("1. Check balance");
-            System.out.println("2. Deposit");
-            System.out.println("3. Withdraw");
-            System.out.println("4. Change PIN");
-            System.out.println("5. Logout");
-            System.out.print("Choose an option: ");
+            try {
+                System.out.println("\n=== MAIN MENU ===");
+                System.out.println("1. Check balance");
+                System.out.println("2. Make deposit");
+                System.out.println("3. Withdraw cash");
+                System.out.println("4. Change PIN");
+                System.out.println("5. Logout");
+                System.out.print("Select option: ");
 
-            int userChoice = sc.nextInt();
-            boolean isRepeatApplication;
+                int choice = sc.nextInt();
 
-            switch (userChoice) {
-                case 1:
-                    System.out.println("Your balance: " + currentAccount.getBalance());
-                    isRepeatApplication = checkRepeatApplication();
-                    if (!isRepeatApplication) {
-                        return;
-                    }
-                    break;
-                case 2:
-                    System.out.print("Enter amount to deposit: ");
-                    BigDecimal depositAmount = sc.nextBigDecimal();
-                    currentAccount.deposit(depositAmount);
-                    System.out.println("Deposit successful.");
-                    isRepeatApplication = checkRepeatApplication();
-                    if (!isRepeatApplication) {
-                        return;
-                    }
-                    break;
-                case 3:
-                    System.out.print("Enter amount to withdraw: ");
-                    BigDecimal withdrawAmount = sc.nextBigDecimal();
-                    currentAccount.withdraw(withdrawAmount);
-                    System.out.println("Withdraw successful.");
-                    isRepeatApplication = checkRepeatApplication();
-                    if (!isRepeatApplication) {
-                        return;
-                    }
-                    break;
-                case 4:
-                    System.out.print("Enter current PIN: ");
-                    String oldPin = sc.next();
-                    System.out.print("Enter new Pin: ");
-                    String newPin = sc.next();
-                    currentAccount.changePin(oldPin, newPin);
-                    System.out.println("PIN changed successfully.");
-                    isRepeatApplication = checkRepeatApplication();
-                    if (!isRepeatApplication) {
-                        return;
-                    }
-                    break;
-                case 5:
-                    System.out.println("Logging out...");
-                    currentAccount = null;
-                    System.exit(0);
-                    return;
-                default:
-                    System.out.println("Invalid operation. Try again.");
+                switch (choice) {
+                    case 1:
+                        System.out.printf("\nCurrent balance: $%.2f\n", currentAccount.getBalance());
+                        if (!checkRepeatApplication()) return;
+                        break;
+
+                    case 2:
+                        System.out.print("\nEnter deposit amount: $");
+                        BigDecimal depositAmount = sc.nextBigDecimal();
+                        currentAccount.deposit(depositAmount);
+                        System.out.println("✔ Deposit successful");
+                        if (!checkRepeatApplication()) return;
+                        break;
+
+                    case 3:
+                        System.out.print("\nEnter withdrawal amount: $");
+                        BigDecimal withdrawAmount = sc.nextBigDecimal();
+                        currentAccount.withdraw(withdrawAmount);
+                        System.out.println("✔ Withdrawal successful");
+                        if (!checkRepeatApplication()) return;
+                        break;
+
+                    case 4:
+                        System.out.print("\nEnter current PIN: ");
+                        String oldPin = sc.next();
+                        System.out.print("Enter new PIN: ");
+                        String newPin = sc.next();
+                        currentAccount.changePin(oldPin, newPin);
+                        System.out.println("✔ PIN changed successfully");
+                        if (!checkRepeatApplication()) return;
+                        break;
+
+                    case 5:
+                        System.out.println("\nLogging out...");
+                        currentAccount = null;
+                        System.exit(0);
+                    default:
+                        System.out.println("\n✖ Invalid option");
+                }
+            } catch (InputMismatchException e) {
+                System.out.println("\n✖ Invalid input. Please enter a number");
+                sc.next();
+            } catch (Exception e) {
+                System.out.println("\n⚠ Error: " + e.getMessage());
             }
         }
     }
